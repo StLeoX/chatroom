@@ -102,16 +102,17 @@ class Client(object):
     # main user loop, aysnc with self.run
     # msg_dict format: {user:str, cmd_type:str, cmd_args:list}
     def REPL(self):
-        while True:
-            try:
+        try:
+            while True:
                 if not self.hangup:
-                    print(_PROMPT_INPUT)
+                    print(_PROMPT_INPUT, end='')
                 user_input = input()
+                self.hangup = True
                 ok, ret = self.parser(user_input)
                 if ok:  # ok means output immediately
-                    print(_PROMPT_OUTPUT + ret)
-                    self.hangup = True
-                    return None
+                    print(_PROMPT_OUTPUT + str(ret))
+                    self.hangup = False
+                    continue
                 else:
                     if ret[0] == 'login' or ret[0] == 'logout':
                         if ret[0] == 'login':
@@ -120,17 +121,19 @@ class Client(object):
                     else:
                         msg = {'user': self.username, 'cmd_type': ret[0], 'cmd_args': ret[1:]}
                     self.add_msg(msg)
-            except KeyboardInterrupt:
-                print("client stopping.")
+        except KeyboardInterrupt:
+            print("client stopping.")
 
     # async msg display
     def async_info(self, msg: str):
         if self.hangup:
+            print('\r', end='')  # clear this line, actually clear "OUTPUT: "
             print(_PROMPT_INFO + msg)
-            print(_PROMPT_INPUT)
+            print(_PROMPT_INPUT, end='')
+            self.hangup = False
         else:
             print(_PROMPT_OUTPUT + msg)
-            self.hangup = True
+            self.hangup = False
 
     # debug
     def debug_info(self):

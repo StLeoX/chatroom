@@ -25,7 +25,7 @@ class CmdEnum(object):  # Enum of cmd
     block = Command('block', 'block <user>', 1)
     unblock = Command('unblock', 'unblock <user>', 1)
     help = Command('help', 'help', 0)
-    debug = Command('debug', 'debug {server|client}', 1)
+    # debug = Command('debug', 'debug {server|client}', 1)
 
 
 def get_help():

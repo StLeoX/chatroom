@@ -93,6 +93,8 @@ class Server(object):
         except:
             pass
         if status == 'online':
+            if cmd == 'login':
+                return True, f"you have login with name {user}."
             return False, None
         elif status == 'offline':
             return True, "login first"
@@ -145,7 +147,7 @@ class Server(object):
             res.remove(user)
         except:  # ignore
             pass
-        ret = "current users are: "
+        ret = "current users except you are: "
         for r in res:
             ret += r
         return ret

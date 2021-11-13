@@ -1,0 +1,36 @@
+VIA aafed5c2-444e-11ec-81ca-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "login", "cmd_args": ["111", "111", "aafed5c2-444e-11ec-81ca-744ca1abcbb6"]}
+VIA aafed5c2-444e-11ec-81ca-744ca1abcbb6 SENT: login success
+VIA aafed5c2-444e-11ec-81ca-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoami", "cmd_args": []}
+VIA aafed5c2-444e-11ec-81ca-744ca1abcbb6 SENT: your are 111
+VIA 9a192d2c-444f-11ec-b3fc-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "login", "cmd_args": ["111", "111", "9a192d2c-444f-11ec-b3fc-744ca1abcbb6"]}
+VIA 9a192d2c-444f-11ec-b3fc-744ca1abcbb6 SENT: login success
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "login", "cmd_args": ["111", "111", "c13a3b0c-444f-11ec-80c5-744ca1abcbb6"]}
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 SENT: login success
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoami", "cmd_args": []}
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 SENT: your are 111
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoelse", "cmd_args": []}
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 SENT: current users are: 
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "message", "cmd_args": ["111", "hello"]}
+VIA c13a3b0c-444f-11ec-80c5-744ca1abcbb6 SENT: send message success
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "login", "cmd_args": ["111", "111", "029e5c2e-4450-11ec-868c-744ca1abcbb6"]}
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 SENT: login success
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoami", "cmd_args": []}
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 SENT: your are 111
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "login", "cmd_args": ["222", "222", "029e5c2e-4450-11ec-868c-744ca1abcbb6"]}
+VIA 029e5c2e-4450-11ec-868c-744ca1abcbb6 SENT: login success
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "login", "cmd_args": ["111", "111", "c47daaae-4450-11ec-90dd-744ca1abcbb6"]}
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 SENT: login success
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "login", "cmd_args": ["222", "222", "c9a8939e-4450-11ec-a67f-744ca1abcbb6"]}
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 SENT: login success
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "message", "cmd_args": ["111", "hello,world"]}
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 SENT: send message success
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "whoami", "cmd_args": []}
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 SENT: your are 222
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoami", "cmd_args": []}
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 SENT: your are 111
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 RECV: {"user": "111", "cmd_type": "whoelse", "cmd_args": []}
+VIA c47daaae-4450-11ec-90dd-744ca1abcbb6 SENT: current users are: 222
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "whoelse", "cmd_args": []}
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 SENT: current users are: 111
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 RECV: {"user": "222", "cmd_type": "broadcast", "cmd_args": ["hello,us"]}
+VIA c9a8939e-4450-11ec-a67f-744ca1abcbb6 SENT: broadcast success
