@@ -4,7 +4,7 @@ import selectors
 import sys
 import types
 import json
-import uuid
+
 #
 import server_config
 from logger import *
@@ -28,7 +28,7 @@ class Server(object):
         self.map_uuid_user = {}  # uuid:username
 
     def listen(self):
-        log_info(f"server is listening on {self.sock_addr[0]}:{self.sock_addr[1]}.")
+        log_info(f"listening on {self.sock_addr[0]}:{self.sock_addr[1]}.")
         self.listening_socket.listen()
 
     def run(self):
@@ -51,30 +51,28 @@ class Server(object):
         conn, addr = sock.accept()  # Should be ready to read
         conn.setblocking(False)
         uuid_ = conn.recv(1024).decode()
-        print('accepted connection from', addr)
-        print('connection uuid is', uuid_)
+        log_info(f"accepted connection from {addr[0]}:{addr[1]}. connid is {uuid_}.")
         self.map_uuid_conn[uuid_] = conn
-        data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')  # todo: unused
-        self.selector.register(conn, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
+        session = types.SimpleNamespace(connid=uuid_, addr=addr, inb=b'', outb=b'')  # separate session
+        self.selector.register(conn, selectors.EVENT_READ | selectors.EVENT_WRITE, data=session)
 
     def serve_connection(self, key, mask):
         sock = key.fileobj
-        data = key.data  # ref to client.session
-        if mask & selectors.EVENT_READ:
+        session = key.data
+        if mask & selectors.EVENT_READ:  # ref to client.session
             recv_data = sock.recv(1024)
             if recv_data:
-                # test
-                log_srv("RECV: " + recv_data.decode())
-                data.outb += self.dispatch(json.loads(recv_data))
+                log_srv(f"VIA {session.connid} RECV: {recv_data.decode()}")
+                session.outb += self.dispatch(json.loads(recv_data))
             else:  # read nothing
-                print('closing connection to', data.addr)
+                log_info(f"closing connection to {session.addr[0]}:{session.addr[1]}.")
                 self.selector.unregister(sock)
                 sock.close()
-        if mask & selectors.EVENT_WRITE:
-            if len(data.outb) != 0:
-                print('response to', data.addr)
-                sent = sock.send(data.outb)  # sent: count of sent data
-                data.outb = data.outb[sent:]
+        if mask & selectors.EVENT_WRITE:  # ref to server.session
+            if len(session.outb) != 0:
+                log_srv(f"VIA {session.connid} SENT: {session.outb.decode()}")
+                sent = sock.send(session.outb)  # sent: count of sent data
+                session.outb = session.outb[sent:]  # update buffer pointer
 
     # consume request msg, return response msg.
     # msg_dict format: {user:str, cmd_type:str, cmd_args:list}
@@ -112,26 +110,28 @@ class Server(object):
             return "password does not match."
         self.map_uuid_user[uid] = name
         self.map_user_status[name] = 'online'
+        self.broadcast(user, f"user {user} has just login.")
         history.login_append(name)
-        return "success"
+        return "login success"
 
     def logout(self, user, uid):
         self.selector.unregister(self.map_uuid_conn[uid].fileno())
         self.map_user_status[self.map_uuid_user] = 'offline'
-        return "success"
+        self.broadcast(user, f"user {user} has just logout.")
+        return "logout success"
 
     def message(self, user, target, msg):
         for uid, name in self.map_uuid_user.items():
             if name == target:
                 self.map_uuid_conn[uid].send(f"{user} send to you: {msg}".encode())
-                return "success"
+                return "send message success"
         return "target_not_found"
 
     def broadcast(self, user, msg):
         for uid, name in self.map_uuid_user.items():
             if name != user:
                 self.map_uuid_conn[uid].send(f"broadcast to you: {msg}".encode())
-        return "success"
+        return "broadcast success"
 
     def whoami(self, user):
         return f"your are {user}"
@@ -151,7 +151,7 @@ class Server(object):
         return ret
 
     def whoelsesince(self, user, sec):
-        res = history.login_since(sec)
+        res = history.login_since(int(sec))
         try:
             res.remove(user)
         except:  # ignore
@@ -165,15 +165,21 @@ class Server(object):
         for name, status in self.map_user_status.items():
             if name == target:
                 self.map_user_status[name] = 'blocked'
-                return 'success'
+                return f"block {target} success"
         return "target_not_found"
 
     def unblock(self, user, target):
         for name, status in self.map_user_status.items():
             if name == target:
                 self.map_user_status[name] = 'online'
-                return 'success'
+                return f"unblock {target} success"
         return "target_not_found"
+
+    def debug(self, user, _):
+        return f'''
+        map_user_status: {self.map_user_status}\n
+        map_uuid_user: {self.map_uuid_user}\n
+        '''
 
     ##
     # constructed from cli args
@@ -192,5 +198,7 @@ class Server(object):
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         Server.get_default_server().run()
-    else:
+    elif len(sys.argv) == 4:
         Server.get_customized_server().run()
+    else:
+        print("usage: ./server.py <host> <port> <timeout>.")

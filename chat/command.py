@@ -25,6 +25,7 @@ class CmdEnum(object):  # Enum of cmd
     block = Command('block', 'block <user>', 1)
     unblock = Command('unblock', 'unblock <user>', 1)
     help = Command('help', 'help', 0)
+    debug = Command('debug', 'debug {server|client}', 1)
 
 
 def get_help():
@@ -37,9 +38,9 @@ def get_help():
 def check_cmd(cmd: str, argv_len: int):
     all_cmds = [m for m in CmdEnum.__dict__ if m[0] != '_']
     if cmd not in all_cmds:
-        return 'command name error.'
+        return 'command name error.\ntype \"help\" for help.'
     if not getattr(CmdEnum, cmd).is_args_valid(argv_len):
-        return 'command agreements error.'
+        return 'command agreements error.\ntype \"help\" for help.'
     return None
 
 

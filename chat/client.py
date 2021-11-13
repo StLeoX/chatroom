@@ -5,15 +5,15 @@ import selectors
 import uuid
 import types
 import json
-from random import randint, random
-import time
+import threading
+
 #
 import server_config
 import command
 
 #
 _PROMPT_INPUT = 'INPUT: '  # client pull
-_PROMPT_OUTPUT = 'OUTPUT: '  # client pull
+_PROMPT_OUTPUT = 'OUTPUT: \n'  # client pull
 _PROMPT_INFO = 'INFO: '  # server push
 _DFT_TIMEOUT = 60  # client timeout, if server is busy.
 
@@ -37,18 +37,21 @@ class Client(object):
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.srv_socket, selectors.EVENT_READ | selectors.EVENT_WRITE, data=self.session)
 
-    def run(self):
+    def run(self):  # async
         # establish, actually these two statements should be atomic
         self.srv_socket.connect_ex(self.srv_sock_addr)
         self.srv_socket.send(self.uuid.encode())
         try:
             while True:
-                # req
-                self.REPL()
-                # res
+
+                # async response
                 events = self.selector.select(timeout=_DFT_TIMEOUT)
                 for key, mask in events:
                     self.serve_connection(key, mask)
+
+                # # req
+                # self.REPL()
+
         except KeyboardInterrupt:
             print("client stopping.")
         finally:
@@ -89,34 +92,52 @@ class Client(object):
         tokens = raw.strip().split(' ')
         if tokens[0] == 'help':
             return True, command.get_help()
+        if tokens[0] == 'debug' and tokens[1] == 'client':
+            return True, self.debug_info()
         check = command.check_cmd(tokens[0], len(tokens))
         if check:
             return True, check
         return False, tokens
 
-    # main user loop
+    # main user loop, aysnc with self.run
     # msg_dict format: {user:str, cmd_type:str, cmd_args:list}
     def REPL(self):
-        user_input = input(_PROMPT_INPUT)
-        ok, ret = self.parser(user_input)
-        if ok:  # ok means output immediately
-            print(_PROMPT_OUTPUT, ret)
-            self.hangup = True
-            return None
-        else:
-            if ret[0] == 'login' or ret[0] == 'logout':
-                if ret[0] == 'login':
-                    self.username = ret[1]
-                msg = {'user': self.username, 'cmd_type': ret[0], 'cmd_args': ret[1:] + [self.uuid]}
-            else:
-                msg = {'user': self.username, 'cmd_type': ret[0], 'cmd_args': ret[1:]}
-            self.add_msg(msg)
+        while True:
+            try:
+                if not self.hangup:
+                    print(_PROMPT_INPUT)
+                user_input = input()
+                ok, ret = self.parser(user_input)
+                if ok:  # ok means output immediately
+                    print(_PROMPT_OUTPUT + ret)
+                    self.hangup = True
+                    return None
+                else:
+                    if ret[0] == 'login' or ret[0] == 'logout':
+                        if ret[0] == 'login':
+                            self.username = ret[1]
+                        msg = {'user': self.username, 'cmd_type': ret[0], 'cmd_args': ret[1:] + [self.uuid]}
+                    else:
+                        msg = {'user': self.username, 'cmd_type': ret[0], 'cmd_args': ret[1:]}
+                    self.add_msg(msg)
+            except KeyboardInterrupt:
+                print("client stopping.")
 
     # async msg display
     def async_info(self, msg: str):
         if self.hangup:
-            print('\r')
-        print(_PROMPT_INFO, msg)
+            print(_PROMPT_INFO + msg)
+            print(_PROMPT_INPUT)
+        else:
+            print(_PROMPT_OUTPUT + msg)
+            self.hangup = True
+
+    # debug
+    def debug_info(self):
+        return f'''
+        {self.session.messages}\n
+        {self.session.outb.decode()}\n
+        '''
 
     ##
     # constructed from cli args
@@ -134,9 +155,13 @@ class Client(object):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        # test
         client = Client.get_default_client()
-        client.run()
-    else:
+        # first 'run', because 'run' will send uuid
+        threading.Thread(target=client.run).start()
+        threading.Thread(target=client.REPL).start()
+    elif len(sys.argv) == 3:  # todo
         client = Client.get_customized_client()
-        client.run()
+        threading.Thread(target=client.run).start()
+        threading.Thread(target=client.REPL).start()
+    else:
+        print("usage: ./client.py <host> <port>.")
